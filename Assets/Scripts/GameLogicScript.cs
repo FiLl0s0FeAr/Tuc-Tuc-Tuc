@@ -15,6 +15,7 @@ public class GameLogicScript : MonoBehaviour
     private int firstWinCollider = 0; // the first win collider
     private int middleWinCollider = 0; // the second win collider
     private int lastWinCollider = 0;  // the last win collider
+    private string winValue = "";       // define which figure is win X or O
 
     private bool isWin = false;    // used for check that win condition is checked or no
     private bool isDraw = false;    // used for check that draw
@@ -105,13 +106,13 @@ public class GameLogicScript : MonoBehaviour
             {
                 if (CheckWinCondition(clickedColliders, winConditions) && !isWin)
                 {
-                    gameSceneManager.GameOver("WIN");
-
                     for (int i = 0; i < collider2Ds.Count; i++)
                     {
                         collider2Ds[i].enabled = false;
                     }
+
                     SpawnWinLine();
+                    gameSceneManager.GameOver($"{winValue} WIN");
 
                     isWin = true;
                 }
@@ -144,6 +145,8 @@ public class GameLogicScript : MonoBehaviour
                     firstWinCollider = condition[0] - 1;
                     middleWinCollider = condition[1] - 1;
                     lastWinCollider = condition[2] - 1;
+
+                    defineWinValue(value1);
 
                     return true; // A win condition is met
                 }
@@ -184,6 +187,18 @@ public class GameLogicScript : MonoBehaviour
         else if (isHorizontalWinLine)
         {
             spawnerLine.SpawnHorizontalLine(colliders[middleWinCollider].transform.position.x, colliders[middleWinCollider].transform.position.y);
+        }
+    }
+
+    void defineWinValue(int value)
+    {
+        if (value == 0)
+        {
+            winValue = "O";
+        }
+        else if (value == 1)
+        {
+            winValue = "X";
         }
     }
 }
