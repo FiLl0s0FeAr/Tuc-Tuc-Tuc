@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameLogicScript : MonoBehaviour
@@ -14,8 +15,10 @@ public class GameLogicScript : MonoBehaviour
     private int amountOfTurns = 0;  // amount of played turns
     private float firstWinCollider = 0; // the first win collider
     private float lastWinCollider = 0;  // the last win collider
+    private bool win = false;    // used for check that win condition is checked or no
 
     private Dictionary<int, int> clickedColliders = new Dictionary<int, int>(); // Track already clicked colliders
+    private List<Collider2D> collider2Ds = new List<Collider2D>();  // list which contains all colliders. used to disable other colliders when the win condition is get
 
     // List of win conditions
     List<int[]> winConditions = new List<int[]>
@@ -36,6 +39,7 @@ public class GameLogicScript : MonoBehaviour
         // XOSpawnerScript object
         spawnerXO = GameObject.FindGameObjectWithTag("SpawnerXO").GetComponent<XOSpawnerScript>();
         spawnerLine = GameObject.FindGameObjectWithTag("SpawnerLine").GetComponent<WinLineScript>();
+        collider2Ds.AddRange(colliders);
     }
 
     // Update is called once per frame
@@ -73,6 +77,7 @@ public class GameLogicScript : MonoBehaviour
                     }
 
                     collider.enabled = false;   // Optionally disable the collider
+                    collider2Ds.Remove(collider);
                     amountOfTurns++;    // increase the turns amount
                     break; // Break the loop since we've handled this click
                 }
@@ -81,13 +86,17 @@ public class GameLogicScript : MonoBehaviour
             // check from turm 5 the win condition
             if (amountOfTurns >= 5)
             {
-                if (CheckWinCondition(clickedColliders, winConditions))
+                if (CheckWinCondition(clickedColliders, winConditions) && !win)
                 {
-                    Debug.Log(firstWinCollider);
-                    Debug.Log(lastWinCollider);
+                    for(int i = 0; i < collider2Ds.Count; i++) 
+                    {
+                        collider2Ds[i].enabled = false;
+                    }
+                    //Debug.Log(firstWinCollider);
+                    //Debug.Log(lastWinCollider);
                     spawnerLine.spawnLine(colliders[0].transform.position.x, colliders[8].transform.position.x);    // test
                     // TODO: add Win or GaveOver screen
-
+                    win = true;
                 }
             }
         }
