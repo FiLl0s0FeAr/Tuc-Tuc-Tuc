@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.XR;
 using UnityEngine;
 
 public class GameLogicScript : MonoBehaviour
@@ -8,6 +7,7 @@ public class GameLogicScript : MonoBehaviour
     public XOSpawnerScript spawnerXO; // get the link to the XOSpawnerScript
     public WinLineScript spawnerLine;   // get the lin to the WinLineScript
     public Collider2D[] colliders;  // list of game fields (1-9)
+    public GameSceneManagerScript gameSceneManager;
 
     public int turn = 1;    // player turn. start from X
     private int amountOfTurns = 0;  // amount of played turns
@@ -16,7 +16,8 @@ public class GameLogicScript : MonoBehaviour
     private int middleWinCollider = 0; // the second win collider
     private int lastWinCollider = 0;  // the last win collider
 
-    private bool win = false;    // used for check that win condition is checked or no
+    private bool isWin = false;    // used for check that win condition is checked or no
+    private bool isDraw = false;    // used for check that draw
     private bool isDiagnolWinLine = false;    // used to check that Win line is diagnol or not
     private bool isHorizontalWinLine = false;    // used to check that Win line is horizontal or not
 
@@ -100,25 +101,25 @@ public class GameLogicScript : MonoBehaviour
             }
 
             // check from turm 5 the win condition
-            if (amountOfTurns >= 5)
+            if (amountOfTurns >= 5 && amountOfTurns < 9)
             {
-                if (CheckWinCondition(clickedColliders, winConditions) && !win)
+                if (CheckWinCondition(clickedColliders, winConditions) && !isWin)
                 {
+                    gameSceneManager.GameOver("WIN");
+
                     for (int i = 0; i < collider2Ds.Count; i++)
                     {
                         collider2Ds[i].enabled = false;
                     }
                     SpawnWinLine();
 
-                    win = true;
-                    // TODO: add Win screen
-                    Debug.Log("Win");
+                    isWin = true;
                 }
-                else
-                {
-                    // TODO: add Dwaw screen
-                    Debug.Log("Draw");
-                }
+            }
+            else if (amountOfTurns == 9 && !isDraw && !isWin)
+            {
+                gameSceneManager.GameOver("DRAW");
+                isDraw = true;
             }
         }
 
