@@ -1,21 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameLogicScript : MonoBehaviour
-{    
+{
     public XOSpawnerScript spawnerXO; // get the link to the XOSpawnerScript
     public WinLineScript spawnerLine;   // get the lin to the WinLineScript
     public Collider2D[] colliders;  // list of game fields (1-9)
 
     public int turn = 1;    // player turn. start from X
     private int amountOfTurns = 0;  // amount of played turns
-    private float firstWinCollider = 0; // the first win collider
-    private float lastWinCollider = 0;  // the last win collider
+
+    private int firstWinCollider = 0; // the first win collider
+    private int middleWinCollider = 0; // the second win collider
+    private int lastWinCollider = 0;  // the last win collider
+
     private bool win = false;    // used for check that win condition is checked or no
+    private bool isDiagnolWinLine = false;    // used to check that Win line is diagnol or not
+    private bool isHorizontalWinLine = false;    // used to check that Win line is horizontal or not
 
     private Dictionary<int, int> clickedColliders = new Dictionary<int, int>(); // Track already clicked colliders
     private List<Collider2D> collider2Ds = new List<Collider2D>();  // list which contains all colliders. used to disable other colliders when the win condition is get
@@ -32,6 +34,19 @@ public class GameLogicScript : MonoBehaviour
             new int[] { 4, 5, 6 }, new int[] { 6, 5, 4 },
             new int[] { 7, 8, 9 }, new int[] { 9, 8, 7 }
         };
+
+    List<int[]> diagonalWinLineList = new List<int[]>
+    {
+        new int[] {0, 8}, new int[] {8, 0},
+        new int[] {2, 6}, new int[] {6, 2}
+    };
+
+    List<int[]> horizontalWinLineList = new List<int[]>
+    {
+        new int[] {0, 2}, new int[] {2, 0},
+        new int[] {3, 5}, new int[] {5, 3},
+        new int[] {6, 8}, new int[] {8, 6}
+    };
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -58,21 +73,21 @@ public class GameLogicScript : MonoBehaviour
 
                 // Check if the mouse position overlaps the collider and it's not already clicked
                 if (collider.OverlapPoint(mousePosition) && !clickedColliders.ContainsKey(colliderNameInt))
-                {                   
+                {
                     clickedColliders.Add(colliderNameInt, turn); // Add to the set of clicked colliders
 
                     if (turn == 1)  // if X turn
                     {
                         // spawn X on corespondent field
                         spawnerXO.SpawnX(collider.transform.position.x, collider.transform.position.y, collider.transform.position.z);
-        
+
                         turn = 0;   //change turn to O
-                    }                   
+                    }
                     else if (turn == 0) // if O turn
                     {
                         // spawn O on corespondent field
                         spawnerXO.SpawnO(collider.transform.position.x, collider.transform.position.y, collider.transform.position.z);
-                        
+
                         turn = 1;   // change turn to X
                     }
 
@@ -88,19 +103,24 @@ public class GameLogicScript : MonoBehaviour
             {
                 if (CheckWinCondition(clickedColliders, winConditions) && !win)
                 {
-                    for(int i = 0; i < collider2Ds.Count; i++) 
+                    for (int i = 0; i < collider2Ds.Count; i++)
                     {
                         collider2Ds[i].enabled = false;
                     }
-                    //Debug.Log(firstWinCollider);
-                    //Debug.Log(lastWinCollider);
-                    spawnerLine.spawnLine(colliders[0].transform.position.x, colliders[8].transform.position.x);    // test
-                    // TODO: add Win or GaveOver screen
+                    SpawnWinLine();
+
                     win = true;
+                    // TODO: add Win screen
+                    Debug.Log("Win");
+                }
+                else
+                {
+                    // TODO: add Dwaw screen
+                    Debug.Log("Draw");
                 }
             }
         }
-        
+
     }
 
     bool CheckWinCondition(Dictionary<int, int> fields, List<int[]> winConditions)
@@ -119,8 +139,9 @@ public class GameLogicScript : MonoBehaviour
                 // Check if all values are the same (either all 0 or all 1)
                 if ((value1 == value2 && value2 == value3) && (value1 == 0 || value1 == 1))
                 {
-                    firstWinCollider = condition[0];
-                    lastWinCollider = condition[2];
+                    firstWinCollider = condition[0] - 1;
+                    middleWinCollider = condition[1] - 1;
+                    lastWinCollider = condition[2] - 1;
 
                     return true; // A win condition is met
                 }
@@ -130,8 +151,36 @@ public class GameLogicScript : MonoBehaviour
         return false; // No win condition is met
     }
 
-    float DefineWinLineCoordinates()
+    void SpawnWinLine()
     {
-        return 0;
+        foreach (int[] condition in diagonalWinLineList)
+        {
+            if (firstWinCollider == condition[0] && lastWinCollider == condition[1])
+            {
+                isDiagnolWinLine = true;
+            }
+        }
+
+        foreach (int[] condition in horizontalWinLineList)
+        {
+            if (firstWinCollider == condition[0] && lastWinCollider == condition[1])
+            {
+                isHorizontalWinLine = true;
+            }
+        }
+
+
+        if (!isHorizontalWinLine && !isDiagnolWinLine)
+        {
+            spawnerLine.SpawnStraightLine(colliders[middleWinCollider].transform.position.x, colliders[middleWinCollider].transform.position.y);
+        }
+        else if (isDiagnolWinLine)
+        {
+            spawnerLine.SpawnDiagonalLine(colliders[middleWinCollider].transform.position.x, colliders[middleWinCollider].transform.position.y);
+        }
+        else if (isHorizontalWinLine)
+        {
+            spawnerLine.SpawnHorizontalLine(colliders[middleWinCollider].transform.position.x, colliders[middleWinCollider].transform.position.y);
+        }
     }
 }
