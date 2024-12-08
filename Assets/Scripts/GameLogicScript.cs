@@ -1,16 +1,23 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameLogicScript : MonoBehaviour
 {
     public XOSpawnerScript spawnerXO; // get the link to the XOSpawnerScript
     public WinLineScript spawnerLine;   // get the lin to the WinLineScript
-    public Collider2D[] colliders;  // list of game fields (1-9)
+    private Collider2D[] colliders;  // list of game fields (1-9)
+    public Transform fieldParent;  // Reference to the parent object (e.g., "Field")
     public GameSceneManagerScript gameSceneManager;
+    public Text xScoreText;
+    public Text oScoreText;
 
     public int turn = 1;    // player turn. start from X
     private int amountOfTurns = 0;  // amount of played turns
+    private static int xScore = 0;
+    private static int oScore = 0;
 
     private int firstWinCollider = 0; // the first win collider
     private int middleWinCollider = 0; // the second win collider
@@ -57,7 +64,20 @@ public class GameLogicScript : MonoBehaviour
         // XOSpawnerScript object
         spawnerXO = GameObject.FindGameObjectWithTag("SpawnerXO").GetComponent<XOSpawnerScript>();
         spawnerLine = GameObject.FindGameObjectWithTag("SpawnerLine").GetComponent<WinLineScript>();
+
+        // Find all Collider2D components in the "Field" parent
+        if (fieldParent != null)
+        {
+            colliders = fieldParent.GetComponentsInChildren<Collider2D>();
+        }
+        else
+        {
+            Debug.LogError("Field parent is not assigned!");
+        }
         collider2Ds.AddRange(colliders);
+
+        xScoreText.text = $"{xScore}";
+        oScoreText.text = $"{oScore}";
     }
 
     // Update is called once per frame
@@ -111,6 +131,8 @@ public class GameLogicScript : MonoBehaviour
                         collider2Ds[i].enabled = false;
                     }
 
+                    InscreaseScore(winValue);
+                    UpdateScoreText();
                     SpawnWinLine();
                     gameSceneManager.GameOver($"{winValue} WIN");
 
@@ -146,7 +168,7 @@ public class GameLogicScript : MonoBehaviour
                     middleWinCollider = condition[1] - 1;
                     lastWinCollider = condition[2] - 1;
 
-                    defineWinValue(value1);
+                    DefineWinValue(value1);
 
                     return true; // A win condition is met
                 }
@@ -190,7 +212,7 @@ public class GameLogicScript : MonoBehaviour
         }
     }
 
-    void defineWinValue(int value)
+    void DefineWinValue(int value)
     {
         if (value == 0)
         {
@@ -199,6 +221,28 @@ public class GameLogicScript : MonoBehaviour
         else if (value == 1)
         {
             winValue = "X";
+        }
+    }
+
+    void InscreaseScore(string whoWin)
+    {
+        if (whoWin == "X")
+        {
+            xScore++;
+        }
+        else if (whoWin == "O")
+        {
+            oScore++;
+            
+        }
+    }
+
+    private void UpdateScoreText()
+    {
+        if (xScoreText != null && oScoreText != null)
+        {
+            xScoreText.text = $"{xScore}";
+            oScoreText.text = $"{oScore}";
         }
     }
 }

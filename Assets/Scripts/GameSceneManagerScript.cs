@@ -5,12 +5,12 @@ using UnityEngine.UI;
 public class GameSceneManagerScript : MonoBehaviour
 {
     public GameObject gameOverScene;
-    public Text scoreText;
+    public Text winText;
 
     public void GameOver(string text)
     {
+        winText.text = text;
         gameOverScene.SetActive(true);
-        scoreText.text = text;
     }
 
     public void Restart()
