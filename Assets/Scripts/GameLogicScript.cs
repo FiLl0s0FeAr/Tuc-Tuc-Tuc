@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.XR;
 using UnityEngine;
 
 public class GameLogicScript : MonoBehaviour
@@ -153,11 +154,13 @@ public class GameLogicScript : MonoBehaviour
 
     void SpawnWinLine()
     {
+        bool startLeft = true;
         foreach (int[] condition in diagonalWinLineList)
         {
             if (firstWinCollider == condition[0] && lastWinCollider == condition[1])
             {
                 isDiagnolWinLine = true;
+                startLeft = (lastWinCollider == 2 || lastWinCollider == 6) ? false : true;
             }
         }
 
@@ -169,14 +172,13 @@ public class GameLogicScript : MonoBehaviour
             }
         }
 
-
         if (!isHorizontalWinLine && !isDiagnolWinLine)
         {
             spawnerLine.SpawnStraightLine(colliders[middleWinCollider].transform.position.x, colliders[middleWinCollider].transform.position.y);
         }
         else if (isDiagnolWinLine)
         {
-            spawnerLine.SpawnDiagonalLine(colliders[middleWinCollider].transform.position.x, colliders[middleWinCollider].transform.position.y);
+            spawnerLine.SpawnDiagonalLine(colliders[middleWinCollider].transform.position.x, colliders[middleWinCollider].transform.position.y, startLeft);
         }
         else if (isHorizontalWinLine)
         {
