@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
 public class GameLogicScript : MonoBehaviour
 {    
-    public XOSpawnerScript spawner; // get the link to the XOSpawnerScript
+    public XOSpawnerScript spawnerXO; // get the link to the XOSpawnerScript
+    public WinLineScript spawnerLine;   // get the lin to the WinLineScript
     public Collider2D[] colliders;  // list of game fields (1-9)
 
     public int turn = 1;    // player turn. start from X
     private int amountOfTurns = 0;  // amount of played turns
+    private float firstWinCollider = 0; // the first win collider
+    private float lastWinCollider = 0;  // the last win collider
 
     private Dictionary<int, int> clickedColliders = new Dictionary<int, int>(); // Track already clicked colliders
 
@@ -30,7 +34,8 @@ public class GameLogicScript : MonoBehaviour
     void Start()
     {
         // XOSpawnerScript object
-        spawner = GameObject.FindGameObjectWithTag("Spawner").GetComponent<XOSpawnerScript>();
+        spawnerXO = GameObject.FindGameObjectWithTag("SpawnerXO").GetComponent<XOSpawnerScript>();
+        spawnerLine = GameObject.FindGameObjectWithTag("SpawnerLine").GetComponent<WinLineScript>();
     }
 
     // Update is called once per frame
@@ -55,18 +60,19 @@ public class GameLogicScript : MonoBehaviour
                     if (turn == 1)  // if X turn
                     {
                         // spawn X on corespondent field
-                        spawner.SpawnX(collider.transform.position.x, collider.transform.position.y, collider.transform.position.z);
+                        spawnerXO.SpawnX(collider.transform.position.x, collider.transform.position.y, collider.transform.position.z);
         
                         turn = 0;   //change turn to O
                     }                   
                     else if (turn == 0) // if O turn
                     {
                         // spawn O on corespondent field
-                        spawner.SpawnO(collider.transform.position.x, collider.transform.position.y, collider.transform.position.z);
+                        spawnerXO.SpawnO(collider.transform.position.x, collider.transform.position.y, collider.transform.position.z);
                         
                         turn = 1;   // change turn to X
                     }
 
+                    collider.enabled = false;   // Optionally disable the collider
                     amountOfTurns++;    // increase the turns amount
                     break; // Break the loop since we've handled this click
                 }
@@ -77,8 +83,11 @@ public class GameLogicScript : MonoBehaviour
             {
                 if (CheckWinCondition(clickedColliders, winConditions))
                 {
+                    Debug.Log(firstWinCollider);
+                    Debug.Log(lastWinCollider);
+                    spawnerLine.spawnLine(colliders[0].transform.position.x, colliders[8].transform.position.x);    // test
                     // TODO: add Win or GaveOver screen
-                    Debug.Log("WIN");
+
                 }
             }
         }
@@ -101,11 +110,19 @@ public class GameLogicScript : MonoBehaviour
                 // Check if all values are the same (either all 0 or all 1)
                 if ((value1 == value2 && value2 == value3) && (value1 == 0 || value1 == 1))
                 {
+                    firstWinCollider = condition[0];
+                    lastWinCollider = condition[2];
+
                     return true; // A win condition is met
                 }
             }
         }
 
         return false; // No win condition is met
+    }
+
+    float DefineWinLineCoordinates()
+    {
+        return 0;
     }
 }
